@@ -34,30 +34,6 @@ const PolicySchema = new Schema({
 
 }};
 
-const MessageCatalogSchema = new Schema({
-  key: {
-    type: String,
-    required: true
-  },
-  body: {
-    type: String,
-    required: true
-  },
-  stateTransitionTrigger: {
-    type: String,
-    enum: [
-      'created',
-      'created:title_check',
-      'title_check:denied',
-      'title_check:pending_liens',
-      'pending_liens:pending_liens_cleared',
-      'pending_liens:denied',
-      'pending_liens_cleared:denied',
-      'pending_liens_cleared:approved'],
-    required: true
-  }
-});
-
 
 const InterestedPartySchema = new Schema({
   type: {
@@ -81,10 +57,8 @@ const InterestedPartySchema = new Schema({
 
 const Policy = mongoose.model('Policy', PolicySchema);
 const InterestedParty = mongoose.model('InterestedParty', InterestedPartySchema);
-const MessageCatalogEntry = mongoose.model('MessageCatalogEntry', MessageCatalogSchema);
 
 
 // Public
 exports.Policy = Policy;
 exports.InterestedParty = InterestedParty;
-exports.MessageCatalogEntry = MessageCatalogEntry;
