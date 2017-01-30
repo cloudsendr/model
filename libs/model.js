@@ -20,21 +20,25 @@ const PolicySchema = new Schema({
     type: String,
     required: true
   },
-  lenderId: {
+  lender: {
     type: String,
-    required: true
+    required: true,
+    ref: 'InterestedParty'
   },
-  agentId: {
+  agent: {
     type: String,
-    required: true
+    required: true,
+    ref: 'InterestedParty'
   },
-  sellerId: {
+  seller: {
     type: String,
-    required: true
+    required: true,
+    ref: 'InterestedParty'
   },
-  buyerId: {
+  buyer: {
     type: String,
-    required: true
+    required: true,
+    ref: 'InterestedParty'
   },
   timestamp: {
     type: Date,
@@ -112,7 +116,7 @@ const findPolicies = (search, page, size, sort) => {
     }
       Policy.find(query).limit(size).skip(page*size).sort({
         name: sort
-      }).exec((err, policies) => {
+      }).populate('lender').populate('buyer').populate('agent').populate('seller').exec((err, policies) => {
       Policy.count().exec((err, count) => {
         if(err) {
           reject(err);
@@ -135,7 +139,7 @@ const findPolicies = (search, page, size, sort) => {
 
 const findPolicy = (id) => {
   let p = new Promise((resolve, reject) => {
-    Policy.findById(mongoose.Types.ObjectId(id), (err, doc) => {
+    Policy.findById(mongoose.Types.ObjectId(id)).populate('lender').populate('buyer').populate('agent').populate('seller').exec((err, doc) => {
       if(err) reject(err);
       else {
         resolve(doc);
