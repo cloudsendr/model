@@ -68,6 +68,7 @@ const InterestedPartySchema = new Schema({
 });
 
 PolicySchema.index({'$**': 'text'});
+InterestedPartySchema.index({'$**': 'text'});
 
 const Policy = mongoose.model('Policy', PolicySchema);
 const InterestedParty = mongoose.model('InterestedParty', InterestedPartySchema);
@@ -105,9 +106,13 @@ const updatePolicy = (policy) => {
 
 const findPolicies = (search, page, size, sort) => {
   let p = new Promise((resolve, reject) => {
-    Policy.find({$text: {$search: search}}).limit(size).skip(page*size).sort({
-      name: sort
-    }).exec((err, policies) => {
+    let query = {};
+    if (search ){
+      query = {$text: {$search: search}};
+    }
+      Policy.find(query).limit(size).skip(page*size).sort({
+        name: sort
+      }).exec((err, policies) => {
       Policy.count().exec((err, count) => {
         if(err) {
           reject(err);
@@ -159,10 +164,12 @@ const saveInterestedParty = (party) => {
 const updateInterestedParty = (party) => {
   let p = new Promise((resolve, reject) => {
     let ipModel = new InterestedParty(party);
-    ipModel.save((err, party) => {
-      if(err) reject(err);
+    ipModel.save((err, updatedParty) => {
+      if(err) {
+        reject(err);
+      }
       else {
-        resolve(party);
+        resolve(updatedParty);
       }
     });
   });
@@ -181,13 +188,41 @@ const findInterestedParty = (id) => {
   return p;
 }
 
+const findInterestedParties = (search, page, size, sort) => {
+  let p = new Promise((resolve, reject) => {
+    let query = {};
+    if (search ){
+      query = {$text: {$search: search}};
+    }
+    InterestedParty.find(query).limit(size).skip(page*size).sort({
+        name: sort
+      }).exec((err, ips) => {
+      InterestedParty.count().exec((err, count) => {
+        if(err) {
+          reject(err);
+        } else {
+          resolve({
+            elements: ips,
+            page: {
+              page: page,
+              size: size,
+              total: count
+            }
+          });
+        }
+      });
+    });
+  });
+  return p;
+}
 // Public
 exports.Policy = Policy;
 exports.InterestedParty = InterestedParty;
-exports.MessageCatalogEntry = MessageCatalogEntry;
 exports.updatePolicy = updatePolicy;
 exports.savePolicy = savePolicy;
 exports.findPolicy = findPolicy;
 exports.findPolicies = findPolicies;
+exports.saveInterestedParty = saveInterestedParty;
 exports.updateInterestedParty = updateInterestedParty;
 exports.findInterestedParty = findInterestedParty;
+exports.findInterestedParties = findInterestedParties;
