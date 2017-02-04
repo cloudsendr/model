@@ -12,7 +12,7 @@ const PolicySchema = new Schema({
     required: true
   },
   status: {
-    type: [String],
+    type: String,
     required: true,
     enum: ['created','title_check', 'pending_liens', 'pending_liens_cleared', 'approved', 'denied']
   },
@@ -44,6 +44,20 @@ const PolicySchema = new Schema({
     type: Date,
     required: true
   }
+},
+  {
+  toObject: {
+    transform: function (doc, ret) {
+      delete ret.__v;
+    }
+  },
+  toJSON: {
+    transform: function (doc, ret) {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+    }
+  }
 
 });
 
@@ -54,6 +68,14 @@ const InterestedPartySchema = new Schema({
     enum: ['agent', 'lender', 'buyer', 'seller']
   },
   fullName: {
+    type: String,
+    required: true
+  },
+  firstName: {
+    type: String,
+    required: true
+  },
+  lastName: {
     type: String,
     required: true
   },
@@ -69,6 +91,22 @@ const InterestedPartySchema = new Schema({
     type: Date,
     required: true
   }
+ },
+  {
+  toObject: {
+    transform: function (doc, ret) {
+      ret._id = ret.id;
+      delete ret.__v;
+    }
+  },
+  toJSON: {
+    transform: function (doc, ret) {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+    }
+  }
+
 });
 
 PolicySchema.index({'$**': 'text'});
@@ -94,16 +132,19 @@ const savePolicy = (policy) => {
 }
 
 const updatePolicy = (policy) => {
+  console.log(policy);
   let p = new Promise((resolve, reject) => {
     let policyModel = new Policy(policy);
-    policyModel.save((err, policy) => {
-      if(err) reject(err);
+    Policy.findByIdAndUpdate(policy.id, {$set: {status: policy.status} }, {new : true})
+          .populate('lender').populate('buyer').populate('agent').populate('seller').exec( (err, policy) => {
+      if(err) {
+        reject(err);
+      }
       else {
         resolve(policy);
       }
     });
   });
-
   return p;
 }
 
@@ -133,14 +174,16 @@ const findPolicies = (search, page, size, sort) => {
       });
     });
   });
-
   return p;
 }
 
 const findPolicy = (id) => {
   let p = new Promise((resolve, reject) => {
     Policy.findById(mongoose.Types.ObjectId(id)).populate('lender').populate('buyer').populate('agent').populate('seller').exec((err, doc) => {
-      if(err) reject(err);
+      if(err) {
+        console.log(err);
+        reject(err);
+      }
       else {
         resolve(doc);
       }
@@ -168,8 +211,9 @@ const saveInterestedParty = (party) => {
 const updateInterestedParty = (party) => {
   let p = new Promise((resolve, reject) => {
     let ipModel = new InterestedParty(party);
-    ipModel.save((err, updatedParty) => {
+    InterestedParty.findOneAndUpdate({_id: party._id}, party, (err, updatedParty) => {
       if(err) {
+        console.log(err);
         reject(err);
       }
       else {
