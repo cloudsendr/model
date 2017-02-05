@@ -67,10 +67,6 @@ const InterestedPartySchema = new Schema({
     type: String,   // tag 'lender', 'buyer', 'seller'
     enum: ['agent', 'lender', 'buyer', 'seller']
   },
-  fullName: {
-    type: String,
-    required: true
-  },
   firstName: {
     type: String,
     required: true
@@ -199,7 +195,10 @@ const saveInterestedParty = (party) => {
   let p = new Promise((resolve, reject) => {
     let ipModel = new InterestedParty(party);
     ipModel.save((err, party) => {
-      if(err) reject(err);
+      if(err) {
+        console.log(err);
+        reject(err);
+      }
       else {
         resolve(party);
       }
@@ -211,13 +210,13 @@ const saveInterestedParty = (party) => {
 const updateInterestedParty = (party) => {
   let p = new Promise((resolve, reject) => {
     let ipModel = new InterestedParty(party);
-    InterestedParty.findOneAndUpdate({_id: party._id}, party, (err, updatedParty) => {
+    InterestedParty.findOneAndUpdate({_id: party.id}, party, (err, updatedParty) => {
       if(err) {
         console.log(err);
         reject(err);
       }
       else {
-        resolve(updatedParty);
+        resolve(party);
       }
     });
   });
